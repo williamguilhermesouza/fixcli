@@ -1,38 +1,40 @@
-import logging
 import argparse
-import sys
 
-logger = logging.getLogger(__name__)
-
+from application import Application
+from config import Config
 
 def main():
-    logging.basicConfig(
-        handlers=[logging.FileHandler("fixcli.log"), logging.StreamHandler(sys.stdout)],
-        format="%(levelname)s %(asctime)s %(message)s",
-        level=logging.DEBUG,
+    args = parse_args()
+    config = Config(args.mode, args.verbose, args.config)
+    application = Application(config)
+    application.start()
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="FixCli",
+        description="Fix Protocol Cli tool. Use it to spawn fix initiators (clients) or acceptors (servers)",
     )
 
-    parser = argparse.ArgumentParser(
-        description="Fix Protocol Cli tool. Use it to spawn fix initiators (clients) or acceptors (servers)"
+    subparser = parser.add_subparsers(dest="mode", required=True)
+
+    initiator_parser = subparser.add_parser("initiator", help="Create a fix initiator")
+    acceptor_parser = subparser.add_parser(
+        "acceptor", help="Create a fix acceptor (default)"
     )
+
     parser.add_argument(
-        "-i", "--initiator", action="store_true", help="Create a fix initiator"
-    )
-    parser.add_argument(
-        "-a", "--acceptor", action="store_true", help="Create a fix acceptor (default)"
-    )
-    parser.add_argument(
-        "-c", "--config", type=str, help="Path to session configuration file"
+        "-c",
+        "--config",
+        required=True,
+        type=str,
+        help="Path to session configuration file",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose mode"
     )
 
     args = parser.parse_args()
-
-    if args.verbose:
-        logging.info("Debug mode enabled")
-
+    return args
 
 if __name__ == "__main__":
     main()
