@@ -23,6 +23,7 @@ class Cli:
 
     def parse_command(self, user_prompt):
         command = user_prompt[0]
+        args = user_prompt[1:]
 
         match command:
             case "exit" | "quit":
@@ -30,17 +31,49 @@ class Cli:
             case "help":
                 self.print_help()
                 return None, False
-            case 'nos':
-                return self.msg_builder('nos'), True
+            case "raw":
+                return "".join(command), True
+            case "new":
+                if len(args) != 5:
+                    print(
+                        "[App]: wrong arg count for new. Usage: new clOrdId symbol side qty price"
+                    )
+                    return None, False
+
+                return self.msg_builder("new", args), True
+            case "exec":
+                if len(args) != 6:
+                    print(
+                        "[App]: wrong arg count for ExecutionReport. Usage: exec OrdId clOrdId symbol side qty price"
+                    )
+                    return None, False
+
+                return self.msg_builder("exec", args), True
             case _:
                 print("[App]: unknown command.")
                 self.print_help()
                 return None, False
 
-    def msg_builder(self, msg_type):
+    def msg_builder(self, msg_type, args):
         match msg_type:
-            case "nos":
-                msg = OrderFactory.new_limit_order('12345', 'VALE3', fix.Side_BUY, 100, 1.0)
+            case "new":
+                msg = OrderFactory.new_limit_order(
+                    str(args[0]),
+                    str(args[1]),
+                    fix.Side_BUY if args[2] == "B" else fix.Side_SELL,
+                    int(args[3]),
+                    float(args[4]),
+                )
+                return msg
+            case "exec":
+                msg = OrderFactory.execution_report(
+                    order_id=str(args[0]),
+                    cl_ord_id=str(args[1]),
+                    symbol=str(args[2]),
+                    side=fix.Side_BUY if args[3] == "B" else fix.Side_SELL,
+                    order_qty=int(args[4]),
+                    price=float(args[5]),
+                )
                 return msg
 
             case _:
@@ -50,7 +83,7 @@ class Cli:
         print(""" FixCli command line tool. 
 
         Commands:
-            exit|quit, help 
+            exit|quit, help, raw, new, exec
         """)
 
 
@@ -76,3 +109,45 @@ class OrderFactory:
         order.setField(fix.TransactTime())
 
         return order
+
+    @staticmethod
+    def execution_report(
+        order_id: str,
+        cl_ord_id: str,
+        symbol: str,
+        side: str,
+        order_qty: float,
+        price: float,
+        exec_type=fix.ExecType_NEW,
+        ord_status=fix.OrdStatus_NEW,
+        exec_id: str | None = None,
+        leaves_qty: float | None = None,
+        cum_qty: float = 0,
+        avg_px: float = 0,
+    ) -> fix44.ExecutionReport:
+
+        report = fix44.ExecutionReport()
+
+        report.setField(fix.OrderID(order_id))
+        report.setField(fix.ExecID(exec_id or str(uuid.uuid4())))
+
+        report.setField(fix.ExecType(exec_type))
+        report.setField(fix.OrdStatus(ord_status))
+
+        report.setField(fix.ClOrdID(cl_ord_id))
+
+        report.setField(fix.Symbol(symbol))
+        report.setField(fix.Side(side))
+
+        report.setField(fix.OrderQty(order_qty))
+        report.setField(fix.Price(price))
+
+        report.setField(fix.CumQty(cum_qty))
+        report.setField(
+            fix.LeavesQty(order_qty - cum_qty if leaves_qty is None else leaves_qty)
+        )
+        report.setField(fix.AvgPx(avg_px))
+
+        report.setField(fix.TransactTime())
+
+        return report
