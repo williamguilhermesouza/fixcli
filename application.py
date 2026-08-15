@@ -7,6 +7,12 @@ from initiator import FixInitiator
 
 logger = logging.getLogger(__name__)
 
+'''TODO this may model better as a state machine
+states: starting?, loging on, connected, logging out, stopping
+events: to conn,   logged,    logout,    logged out,
+actions:                    send,recv,  
+'''
+
 class Application:
     def __init__(self, config):
         self.config = config
@@ -31,8 +37,18 @@ class Application:
 
             self.engine.start()
 
+            if self.config.mode == 'initiator':
+                self.engine.send_test_msg()
+
             while True:
+
+                #TODO only spawns prompt when logged on
                 message = self.cli.prompt_message()
+                if not message:
+                    break
+
+                self.engine.send_msg(message)
+
 
             logging.info("Application shutting down...")
 
@@ -44,7 +60,4 @@ class Application:
 
     def start_initiator(self, settings_file):
         return FixInitiator(settings_file)
-
-
-
 

@@ -14,23 +14,30 @@ class FixAcceptor(fix.Application):
     def start(self):
         self.engine.start()
 
+    def send_msg(self, msg):
+        fix.Session.sendToTarget(msg, self.sessionID)
+
     def onCreate(self, sessionID):
-        logger.info(f"created with session id {sessionID}")
+        self.sessionID = sessionID
+        logger.debug(f"Created: {sessionID}")
 
     def onLogon(self, sessionID):
-        logger.info(f"logged on with session id {sessionID}")
+        logger.debug(f"Logon: {sessionID}")
 
     def onLogout(self, sessionID):
-        logger.info(f"logged out with session id {sessionID}")
+        logger.debug(f"Logout: {sessionID}")
 
     def toApp(self, message, sessionID):
-        logger.info(f'message to app {message} on session id {sessionID}')
+        logger.debug(f'>App[{sessionID}]: {message}')
 
     def fromApp(self, message, sessionID):
-        logger.info(f'message from app {message} on session id {sessionID}')
+        logger.debug(f'<App[{sessionID}]: {message}')
 
-    def fromAdmin(self, message, sessionID): return
-    def toAdmin(self, message, sessionID): return
+    def fromAdmin(self, message, sessionID):
+        logger.debug(f'<Admin[{sessionID}]: {message}')
+
+    def toAdmin(self, message, sessionID):
+        logger.debug(f'>Admin[{sessionID}]: {message}')
 
 
         
