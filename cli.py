@@ -1,13 +1,15 @@
 import quickfix44 as fix44
 import quickfix as fix
+import uuid
 
 
 class Cli:
-    def __init__(self):
-        pass
+    def __init__(self, running, connected):
+        self.running = running
+        self.connected = connected
 
     def prompt_message(self):
-        while True:
+        while self.running.is_set() and self.connected.is_set():
             user_prompt = input("fixcli> ")
             user_prompt = user_prompt.strip()
 
@@ -27,6 +29,7 @@ class Cli:
 
         match command:
             case "exit" | "quit":
+                self.running.clear()
                 return None, True
             case "help":
                 self.print_help()

@@ -5,8 +5,9 @@ import time
 logger = logging.getLogger(__name__)
 
 class FixInitiator(fix.Application):
-    def __init__(self, settings_file):
+    def __init__(self, settings_file, connected_event):
         super().__init__()
+        self.connected = connected_event
         self.settings = fix.SessionSettings(settings_file)
         self.store = fix.FileStoreFactory(self.settings)
         self.log = fix.FileLogFactory(self.settings)
@@ -14,6 +15,8 @@ class FixInitiator(fix.Application):
 
     def start(self):
         self.engine.start()
+    def stop(self):
+        self.engine.stop()
 
     def send_test_msg(self):
 
@@ -42,9 +45,11 @@ class FixInitiator(fix.Application):
 
     def onLogon(self, sessionID):
         logger.debug(f"Logon: {sessionID}")
+        self.connected.set()
 
     def onLogout(self, sessionID):
         logger.debug(f"Logout: {sessionID}")
+        self.connected.clear()
 
     def toApp(self, message, sessionID):
         logger.debug(f'>App[{sessionID}]: {message}')

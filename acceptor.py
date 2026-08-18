@@ -4,8 +4,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FixAcceptor(fix.Application):
-    def __init__(self, settings_file):
+    def __init__(self, settings_file, connected_event):
         super().__init__()
+        self.connected = connected_event
         self.settings = fix.SessionSettings(settings_file)
         self.store = fix.FileStoreFactory(self.settings)
         self.log = fix.FileLogFactory(self.settings)
@@ -13,6 +14,8 @@ class FixAcceptor(fix.Application):
 
     def start(self):
         self.engine.start()
+    def stop(self):
+        self.engine.stop()
 
     def send_msg(self, msg):
         fix.Session.sendToTarget(msg, self.sessionID)
@@ -22,9 +25,11 @@ class FixAcceptor(fix.Application):
         logger.debug(f"Created: {sessionID}")
 
     def onLogon(self, sessionID):
+        self.connected.set()
         logger.debug(f"Logon: {sessionID}")
 
     def onLogout(self, sessionID):
+        self.connected.clear()
         logger.debug(f"Logout: {sessionID}")
 
     def toApp(self, message, sessionID):
