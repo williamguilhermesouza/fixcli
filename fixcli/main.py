@@ -1,7 +1,7 @@
 import argparse
 
-from application import Application
-from config import Config
+from fixcli.application import Application
+from fixcli.config import Config
 
 def main():
     args = parse_args()

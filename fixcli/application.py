@@ -2,9 +2,9 @@ import sys
 import logging
 import threading
 
-from acceptor import FixAcceptor
-from cli import Cli
-from initiator import FixInitiator
+from fixcli.acceptor import FixAcceptor
+from fixcli.cli import Cli
+from fixcli.initiator import FixInitiator
 
 logger = logging.getLogger(__name__)
 

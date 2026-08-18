@@ -5,6 +5,11 @@ description = ""
 authors = ["williamguilhermesouza <williamguilhermesouza@gmail.com>"]
 readme = "README.md"
 
+packages = [{ include = "fixcli" }]
+
+[tool.poetry.scripts]
+start = "fixcli.main:main"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 quickfix = "^1.16.0"
